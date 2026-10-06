@@ -1,0 +1,23 @@
+{
+  "editor.formatOnSave": true,
+  "files.insertFinalNewline": true,
+  "editor.detectIndentation": false,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "files.readonlyInclude": {
+    "specs/**": true,
+    "src/czreg/*/models.py": true,
+    "src/czreg/*/models/**": true
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "ruff.importStrategy": "fromEnvironment",
+  "files.trimTrailingWhitespace": true
+}
