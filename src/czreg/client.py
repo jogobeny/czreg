@@ -31,6 +31,7 @@ from .subject import (
     subject_from_ares,
     subject_from_isir,
     vat_from,
+    vat_from_ares,
 )
 
 _UNAVAILABLE = (SourceError, httpx.TransportError)
@@ -101,8 +102,9 @@ class czreg:
         """The subject with this IČO: a `Company`, or a `Person` with the name from RŽP.
 
         The basic data cost one ARES request; each part in `include` one more. A part left out
-        is None, and so is one whose source did not answer. An empty list means the source has
-        none.
+        is None, and so is one whose source did not answer. `vat` is the exception: it always
+        has the DIČ from ARES, and the fields from DPH are None. An empty list means the source
+        has none.
 
         Raises:
             InvalidIco: the IČO failed the local validation. No request was sent.
@@ -133,6 +135,8 @@ class czreg:
             part(Part.REPRESENTATIVES, Source.VR, self._representatives(ico, subject)),
             part(Part.INSOLVENCY, Source.ISIR, self._insolvency(ico)),
         )
+        if vat_ is None:
+            vat_ = vat_from_ares(subject)
         return subject_from_ares(ico, subject, person, vat_, boxes, reps, insolvency, errors)
 
     async def _person(self, ico: str, subject: EkonomickySubjekt):

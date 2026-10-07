@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "czreg"
-version = "0.1.0"
+version = "0.2.0"
 description = "Typed async clients for the Czech public registers: ARES (VR, RES, RŽP, ROS, NRPZS, RPSH, RCNS, SZR, RŠ, CEÚ), ISIR, and the VAT payer register (DPH)"
 readme = "README.md"
 license = "MIT"
@@ -25,6 +25,9 @@ dependencies = [
     "pydantic>=2.7",
     "tenacity>=9.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/jogobeny/czreg"
 
 [project.optional-dependencies]
 ratelimit = ["pyrate-limiter>=3.7"]

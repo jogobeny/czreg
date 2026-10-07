@@ -34,7 +34,7 @@ print(subject.insolvency.ongoing)  # False
 print(subject.data_boxes)  # None
 ```
 
-`Part.NONE` gives only the basic data from ARES: the IČO, name, address, legal form, NACE codes, and the dates of establishment and cessation. For a natural person (a `Person`, not a `Company`), also the name, title, birth date, and sex from RŽP.
+`Part.NONE` gives only the basic data from ARES: the IČO, DIČ (`vat.dic`), name, address, legal form, NACE codes, and the dates of establishment and cessation. For a natural person (a `Person`, not a `Company`), also the name, title, birth date, and sex from RŽP.
 
 A subject that ARES no longer knows, but ISIR does (often a deleted one in insolvency), comes back from the ISIR data with `in_ares=False`; one that neither knows raises `NotFound`:
 
@@ -56,7 +56,7 @@ for change in diff(old, new):
     print(change)  # path='address.city' old='Brno' new='Praha'
 ```
 
-A nested part is compared field by field, a list as a whole. A part left out by `include`, or whose source did not answer (see `subject.errors`), is `None` and shows as a change too.
+A nested part is compared field by field, a list as a whole. A part left out by `include`, or whose source did not answer (see `subject.errors`), is `None` and shows as a change too. `vat` is the exception: it always has the DIČ from ARES, and only its fields from DPH are `None`.
 
 `changes` tells which subjects changed in the ARES registers, from the ARES notification batches. Store the cursor and pass it to the next call; then fetch only the subjects that changed:
 

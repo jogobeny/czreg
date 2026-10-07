@@ -105,13 +105,16 @@ class BankAccount(_Model):
 
 
 class Vat(_Model):
-    status: VatStatus | Conflict[VatStatus]
+    """`dic` and `group_dic` come from ARES. The other fields come from DPH, and are None
+    without `Part.VAT`, or when DPH did not answer (see `errors`)."""
+
+    status: VatStatus | Conflict[VatStatus] | None
     dic: str | None
     group_dic: str | None
-    unreliable: bool
+    unreliable: bool | None
     unreliable_since: date | None
     tax_office: str | None
-    bank_accounts: list[BankAccount]
+    bank_accounts: list[BankAccount] | None
 
 
 class DataBox(_Model):
@@ -285,10 +288,27 @@ def vat_from(ico: str, s: EkonomickySubjekt, entries: list[InformaceOSubjektuRoz
     )
 
 
+def vat_from_ares(s: EkonomickySubjekt):
+    """The DIČ from ARES alone, without `Part.VAT` or when DPH did not answer."""
+    return Vat(
+        status=None,
+        dic=s.dic,
+        group_dic=s.dicSkDph,
+        unreliable=None,
+        unreliable_since=None,
+        tax_office=None,
+        bank_accounts=None,
+    )
+
+
 def data_boxes_from_ros(records: list[ZaznamRos]):
     current = [r for r in records if r.stavSubjektu == "AKTIVNI"]
+    # ARES code list StavUdajeRos: ROS marks a wrong box `nespravny`; `nedefinovany` stays
     boxes = {
-        d.identifikatorDs: d for r in current for d in r.datoveSchranky or [] if d.identifikatorDs
+        d.identifikatorDs: d
+        for r in current
+        for d in r.datoveSchranky or []
+        if d.identifikatorDs and d.platnostUdajeRos != "nespravny"
     }
     return [
         DataBox(id=i, type=DataBoxType(t) if (t := d.typDatoveSchranky) else None)
