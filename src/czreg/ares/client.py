@@ -4,7 +4,7 @@ import httpx
 from pydantic import BaseModel, ValidationError
 
 from .._core.base import CzregModel
-from .._core.exceptions import InvalidRequest, NotFound, SourceUnavailable
+from .._core.exceptions import InvalidRequest, NotFound, SourceUnavailable, TooManyResults
 from .._core.transport import HttpClient
 from .._core.validation import normalize_ico
 from .models import (
@@ -70,8 +70,8 @@ class AresClient(HttpClient):
 
         Raises:
             NotFound: HTTP 404 or `NENALEZENO`.
-            InvalidRequest: HTTP 400 or `CHYBA_VSTUPU`, for example an empty filter, or more
-                than 1 000 results (`code="VYSTUP_PRILIS_MNOHO_VYSLEDKU"`).
+            TooManyResults: a search with more than 1 000 results.
+            InvalidRequest: HTTP 400 or `CHYBA_VSTUPU`, for example an empty filter.
             SourceUnavailable: any other error, or a reply that does not match the spec.
         """
         json = filter.model_dump(mode="json", exclude_none=True) if filter else None
@@ -88,6 +88,8 @@ class AresClient(HttpClient):
 
             if response.status_code == 404 or chyba.kod == "NENALEZENO":
                 raise NotFound(message, source="ares", code=code)
+            if code == "VYSTUP_PRILIS_MNOHO_VYSLEDKU":
+                raise TooManyResults(message, source="ares", code=code)
             if response.status_code == 400 or chyba.kod == "CHYBA_VSTUPU":
                 raise InvalidRequest(message, source="ares", code=code)
             raise SourceUnavailable(message, source="ares", code=code)

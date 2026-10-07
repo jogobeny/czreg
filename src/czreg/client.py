@@ -10,6 +10,7 @@ from ._core.validation import normalize_ico
 from .ares import AresClient
 from .ares.models import (
     CiselnikyZakladniFiltr,
+    EkonomickeSubjektyKomplexFiltr,
     EkonomickeSubjektyNotifikaceFiltr,
     EkonomickySubjekt,
 )
@@ -24,8 +25,10 @@ from .subject import (
     DataBox,
     Person,
     Representative,
+    SearchResult,
     Source,
     data_boxes_from_ros,
+    hit_from_ares,
     insolvency_from,
     representatives_from_vr,
     subject_from_ares,
@@ -138,6 +141,26 @@ class czreg:
         if vat_ is None:
             vat_ = vat_from_ares(subject)
         return subject_from_ares(ico, subject, person, vat_, boxes, reps, insolvency, errors)
+
+    async def search(self, name: str, *, limit: int = 20, offset: int = 0):
+        """The subjects in ARES whose name has all the words of `name`. One ARES request.
+
+        ARES finds whole words only, in any order, with any case and diacritics: "cez distribuce"
+        finds "ČEZ Distribuce, a. s.", but "Distribu" finds nothing. A blank `name` gives no
+        hits, without a request.
+
+        Raises:
+            TooManyResults: more than 1 000 subjects match. Paging does not help.
+        """
+        if not name.strip():
+            return SearchResult(total=0, hits=[])
+        found = await self.ares.search(
+            EkonomickeSubjektyKomplexFiltr(obchodniJmeno=name.strip(), pocet=limit, start=offset)
+        )
+        return SearchResult(
+            total=found.pocetCelkem or 0,
+            hits=[hit_from_ares(s) for s in found.ekonomickeSubjekty or []],
+        )
 
     async def _person(self, ico: str, subject: EkonomickySubjekt):
         registrace = subject.seznamRegistraci

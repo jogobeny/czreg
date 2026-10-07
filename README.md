@@ -45,6 +45,23 @@ print(subject.name)  # Obchodní areál Prachanda, s.r.o.
 print(subject.insolvency.proceedings[0].file_number)  # INS 4471/2015
 ```
 
+`search` finds subjects in ARES by their name, 20 by default:
+
+```python
+from czreg import TooManyResults
+
+result = await cz.search("cez distribuce", limit=10)
+print(result.total)  # 1
+print(result.hits[0].ico, result.hits[0].name)  # 24729035 ČEZ Distribuce, a. s.
+
+try:
+    await cz.search("novák")
+except TooManyResults as exc:
+    print(exc.found)  # 8579
+```
+
+ARES finds whole words only, in any order, with any case and diacritics: "Distribu" finds nothing. Over 1 000 matches, ARES returns none of them, and `offset` does not help: make the query narrower. A hit has the basic data only; `get_subject` gives the rest.
+
 `diff` tells what changed between two snapshots of a subject, e.g. one saved a week ago and one from today:
 
 ```python

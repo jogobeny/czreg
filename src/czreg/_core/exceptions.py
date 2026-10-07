@@ -1,3 +1,6 @@
+import re
+
+
 class CzregError(Exception):
     """Base class for every error this library raises."""
 
@@ -28,6 +31,21 @@ class NotFound(SourceError):
 
 
 class InvalidRequest(SourceError): ...
+
+
+class TooManyResults(InvalidRequest):
+    """The search matches more than 1 000 subjects, and ARES returns none of them.
+
+    ARES checks the limit against all the matches before `offset` and `limit`, so paging does
+    not help: only a narrower query does. `found` is the number of matches, when the message of
+    ARES gives it.
+    """
+
+    def __init__(self, message: str, *, source: str, code: str | None = None):
+        super().__init__(message, source=source, code=code)
+        # "Zadaný dotaz vrací příliš mnoho výsledků (8 579)."
+        match = re.search(r"\((\d[\d\s]*)\)", message)
+        self.found: int | None = int(re.sub(r"\D", "", match.group(1))) if match else None
 
 
 class SourceUnavailable(SourceError):

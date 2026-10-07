@@ -183,6 +183,20 @@ class Company(_Subject):
     representatives: list[Representative] | None
 
 
+class Hit(_Model):
+    ico: str | None
+    name: str | None
+    address: Address | None
+    legal_form: LegalForm | None
+    established: date | None
+    ceased: date | None
+
+
+class SearchResult(_Model):
+    total: int  # all the matches in ARES, not only these hits
+    hits: list[Hit]
+
+
 class Sex(StrEnum):
     MALE = "male"
     FEMALE = "female"
@@ -223,6 +237,17 @@ def address_from_ares(a: Adresa):
         postal_code=str(a.psc) if a.psc is not None else a.pscTxt,
         country_code=Country(a.kodStatu) if a.kodStatu else None,
         ruian_code=a.kodAdresnihoMista,
+    )
+
+
+def hit_from_ares(s: EkonomickySubjekt):
+    return Hit(
+        ico=s.ico,
+        name=s.obchodniJmeno,
+        address=address_from_ares(s.sidlo) if s.sidlo else None,
+        legal_form=LegalForm(s.pravniForma) if s.pravniForma else None,
+        established=s.datumVzniku,
+        ceased=s.datumZaniku,
     )
 
 
